@@ -1,775 +1,611 @@
+
 <!DOCTYPE html>
-
 <html lang="ko">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>시간 지연 시뮬레이터</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gravity Time Dilation Model</title>
 
 <style>
-
 * { box-sizing: border-box; }
 
 body {
-
   margin: 0;
-
-  padding: 25px 15px;
-
-  background: #101827;
-
-  color: #f1f5f9;
-
+  background: #080d1b;
+  color: white;
   font-family: Arial, sans-serif;
-
 }
 
-.container {
-
-  max-width: 850px;
-
-  margin: auto;
-
+header {
+  padding: 20px;
+  text-align: center;
 }
 
-h1 { font-size: 27px; }
-
-h2 { font-size: 19px; margin-top: 0; }
+h1 {
+  font-size: 25px;
+  margin-bottom: 8px;
+}
 
 .subtitle {
-
-  color: #aab7ca;
-
-  line-height: 1.6;
-
+  color: #aab6d0;
+  font-size: 13px;
 }
 
-.card {
-
-  background: #1c293b;
-
-  border: 1px solid #34445a;
-
-  border-radius: 13px;
-
-  padding: 20px;
-
-  margin: 17px 0;
-
+main {
+  max-width: 950px;
+  margin: auto;
+  padding: 12px;
 }
 
-label {
+.panel {
+  background: #111a2d;
+  border: 1px solid #283650;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 15px;
+}
 
+canvas {
   display: block;
-
-  margin: 18px 0 8px;
-
-  font-weight: bold;
-
+  width: 100%;
+  height: 360px;
+  background: radial-gradient(#182642, #050914);
+  border-radius: 12px;
 }
 
-input[type=range] {
+.control {
+  margin: 18px 0;
+}
 
+.control label {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+  margin-bottom: 9px;
+}
+
+input[type="range"] {
   width: 100%;
-
-  cursor: pointer;
-
-  accent-color: #60a5fa;
-
+  accent-color: #65b7ff;
 }
 
 .value {
-
-  color: #60a5fa;
-
-  font-size: 20px;
-
+  color: #78c8ff;
   font-weight: bold;
-
 }
 
-.result-grid {
-
+.stats {
   display: grid;
-
   grid-template-columns: repeat(2, 1fr);
-
-  gap: 12px;
-
+  gap: 10px;
 }
 
-.result {
-
-  background: #26374d;
-
-  padding: 15px;
-
+.stat {
+  padding: 13px;
   border-radius: 10px;
-
+  background: #1a2740;
+  overflow-wrap: anywhere;
 }
 
-.result p {
-
-  color: #b6c5d8;
-
-  font-size: 13px;
-
-}
-
-.result strong {
-
-  font-size: 21px;
-
+.stat small {
+  color: #aab6d0;
   display: block;
-
-  margin-top: 8px;
-
+  margin-bottom: 7px;
 }
 
-.blue { color: #60a5fa; }
+.stat strong {
+  font-size: 17px;
+}
 
-.orange { color: #fbbf24; }
+.blue { color: #64c8ff; }
+.orange { color: #ffb86b; }
+.green { color: #83e5b1; }
 
-.green { color: #4ade80; }
-
-canvas {
-
-  width: 100%;
-
-  height: 300px;
-
-  background: #111e30;
-
-  border-radius: 10px;
-
+.note {
+  font-size: 12px;
+  color: #aab6d0;
+  line-height: 1.6;
 }
 
 button {
-
-  background: #334b6b;
-
+  border: 0;
+  padding: 10px 16px;
+  border-radius: 9px;
+  background: #2869c7;
   color: white;
-
-  border: none;
-
-  border-radius: 8px;
-
-  padding: 10px 15px;
-
-  cursor: pointer;
-
-  margin-top: 12px;
-
-}
-
-button:hover { background: #45658d; }
-
-.explanation {
-
-  line-height: 1.8;
-
-  color: #cbd5e1;
-
   font-size: 14px;
-
+  cursor: pointer;
 }
-
-.formula {
-
-  background: #111e30;
-
-  padding: 12px;
-
-  border-radius: 8px;
-
-  overflow-wrap: anywhere;
-
-  margin: 10px 0;
-
-}
-
-@media(max-width:500px) {
-
-  .result-grid { grid-template-columns: 1fr; }
-
-  h1 { font-size: 23px; }
-
-}
-
 </style>
-
 </head>
 
 <body>
 
-<div class="container">
+<header>
+  <h1>🌌 중력과 시간 지연</h1>
+  <div class="subtitle">
+    행성의 중력과 우주선의 속도에 따른 시간 흐름 비교
+  </div>
+</header>
 
-<h1>⏳ 시간 지연 시뮬레이터</h1>
+<main>
 
-<p class="subtitle">
+<section class="panel">
+  <canvas id="space"></canvas>
+  <p class="note">
+    행성 주변의 원은 거리를 나타내는 궤도야.
+    우주선은 현재 선택한 거리에서 움직여.
+    모형의 움직임은 이해를 돕기 위한 시각적 표현이야.
+  </p>
+</section>
 
-일반상대성이론과 특수상대성이론에서 나타나는
+<section class="panel">
 
-시간 지연 현상을 비교하는 탐구 프로그램
+<h2>조건 설정</h2>
 
+<div class="control">
+  <label>
+    행성 질량
+    <span class="value" id="massText">1 지구 질량</span>
+  </label>
+  <input id="mass" type="range" min="1" max="10"
+         step="0.1" value="1">
+</div>
+
+<div class="control">
+  <label>
+    행성 중심으로부터 거리
+    <span class="value" id="distanceText">3 지구 반지름</span>
+  </label>
+  <input id="distance" type="range" min="1" max="20"
+         step="0.1" value="3">
+</div>
+
+<div class="control">
+  <label>
+    우주선 속도
+    <span class="value" id="speedText">1% c</span>
+  </label>
+  <input id="speed" type="range" min="0" max="99"
+         step="0.1" value="1">
+</div>
+
+<button id="pause">움직임 멈추기</button>
+
+</section>
+
+<section class="panel">
+
+<h2>시간 지연 계산</h2>
+
+<div class="stats">
+
+  <div class="stat">
+    <small>중력에 의한 시간 지연</small>
+    <strong class="blue" id="gravity">-</strong>
+  </div>
+
+  <div class="stat">
+    <small>속도에 의한 시간 지연</small>
+    <strong class="orange" id="velocity">-</strong>
+  </div>
+
+  <div class="stat">
+    <small>두 효과를 함께 고려한 시간 지연</small>
+    <strong class="green" id="combined">-</strong>
+  </div>
+
+  <div class="stat">
+    <small>두 효과가 같아지는 속도</small>
+    <strong id="equalSpeed">-</strong>
+  </div>
+
+</div>
+
+<p class="note" id="description"></p>
+
+</section>
+
+<section class="panel">
+
+<h2>시간 흐름 비교</h2>
+
+<canvas id="chart"></canvas>
+
+<p class="note">
+  가로축은 행성 중심으로부터의 거리야.
+  세로축은 하루 동안 발생하는 시간 지연을
+  마이크로초 단위로 나타내.
 </p>
 
-<div class="card">
+</section>
 
-<h2>① 행성의 조건</h2>
-
-<label>
-
-행성의 질량
-
-<span class="value" id="massValue">1 M⊕</span>
-
-</label>
-
-<input id="mass" type="range"
-
-min="1" max="10" step="0.5" value="1">
-
-<label>
-
-행성 중심으로부터의 거리
-
-<span class="value" id="distanceValue">1 R⊕</span>
-
-</label>
-
-<input id="distance" type="range"
-
-min="1" max="20" step="0.5" value="1">
-
-<p class="explanation">
-
-M⊕ : 지구 질량의 배수<br>
-
-R⊕ : 지구 반지름의 배수<br>
-
-행성의 반지름은 지구 반지름으로 고정한 단순화 모델입니다.
-
-</p>
-
-</div>
-
-<div class="card">
-
-<h2>② 물체의 속도</h2>
-
-<label>
-
-빛의 속도에 대한 비율
-
-<span class="value" id="speedValue">1%</span>
-
-</label>
-
-<input id="speed" type="range"
-
-min="0" max="0.99" step="0.001" value="0.01">
-
-<p class="explanation">
-
-0.01은 빛의 속도의 1%를 의미합니다.
-
-</p>
-
-</div>
-
-<div class="card">
-
-<h2>③ 시간 지연 계산 결과</h2>
-
-<div class="result-grid">
-
-<div class="result">
-
-<p>중력에 의한 시간 지연</p>
-
-<strong class="blue" id="gravityLoss">-</strong>
-
-<small>마이크로초 / 하루</small>
-
-</div>
-
-<div class="result">
-
-<p>속도에 의한 시간 지연</p>
-
-<strong class="orange" id="speedLoss">-</strong>
-
-<small>마이크로초 / 하루</small>
-
-</div>
-
-<div class="result">
-
-<p>두 효과를 함께 고려한 시간 지연</p>
-
-<strong class="green" id="totalLoss">-</strong>
-
-<small>마이크로초 / 하루</small>
-
-</div>
-
-<div class="result">
-
-<p>두 개별 시간 지연 효과가 같아지는 속도</p>
-
-<strong id="equalSpeed">-</strong>
-
-<small>km/s</small>
-
-</div>
-
-</div>
-
-<p class="explanation" id="comparison"></p>
-
-</div>
-
-<div class="card">
-
-<h2>④ 거리와 시간 지연의 관계</h2>
-
-<p class="explanation">
-
-현재 설정한 행성 질량과 속도를 유지하면서
-
-거리에 따라 시간 지연이 어떻게 변하는지 나타냅니다.
-
-</p>
-
-<canvas id="graph" width="800" height="350"></canvas>
-
-<p class="explanation">
-
-<span class="blue">● 파란색: 중력 시간 지연</span><br>
-
-<span class="orange">● 주황색: 속도 시간 지연</span>
-
-</p>
-
-</div>
-
-<div class="card">
-
-<h2>⑤ 물리학적 계산 원리</h2>
-
-<div class="formula">
-
-중력 시간 지연 비율<br>
-
-√(1 - 2GM / rc²)
-
-</div>
-
-<div class="formula">
-
-속도 시간 지연 비율<br>
-
-√(1 - v² / c²)
-
-</div>
-
-<div class="formula">
-
-결합 시간 지연 비율<br>
-
-√(1 - 2GM / rc²) × √(1 - v² / c²)
-
-</div>
-
-<div class="formula">
-
-두 개별 효과가 같아지는 속도<br>
-
-v = √(2GM / r)
-
-</div>
-
-<p class="explanation">
-
-G : 만유인력 상수<br>
-
-M : 행성의 질량<br>
-
-r : 행성 중심으로부터의 거리<br>
-
-c : 빛의 속도<br>
-
-v : 해당 위치에서 측정한 물체의 속도
-
-</p>
-
-</div>
-
-<button onclick="resetAll()">초기값으로 돌아가기</button>
-
-</div>
+</main>
 
 <script>
 
-// 물리 상수
-
 const G = 6.67430e-11;
-
 const C = 299792458;
 
-const EARTH_MASS = 5.9722e24;
+const ME = 5.9722e24;
+const RE = 6371000;
 
-const EARTH_RADIUS = 6.371e6;
+const mass = document.getElementById("mass");
+const distance = document.getElementById("distance");
+const speed = document.getElementById("speed");
 
-// HTML 요소
+const canvas = document.getElementById("space");
+const ctx = canvas.getContext("2d");
 
-const massInput = document.getElementById("mass");
+const chart = document.getElementById("chart");
+const cctx = chart.getContext("2d");
 
-const distanceInput = document.getElementById("distance");
+let paused = false;
+let angle = 0;
 
-const speedInput = document.getElementById("speed");
+document.getElementById("pause").onclick = () => {
+  paused = !paused;
+  document.getElementById("pause").textContent =
+    paused ? "움직임 시작하기" : "움직임 멈추기";
+};
 
-const massValue = document.getElementById("massValue");
+function values() {
 
-const distanceValue = document.getElementById("distanceValue");
-
-const speedValue = document.getElementById("speedValue");
-
-function calculate() {
-
-  // 입력값
-
-  const M = Number(massInput.value) * EARTH_MASS;
-
-  const r = Number(distanceInput.value) * EARTH_RADIUS;
-
-  const v = Number(speedInput.value) * C;
-
-  // 슈바르츠실트 반지름
+  const M = Number(mass.value) * ME;
+  const r = Number(distance.value) * RE;
+  const v = Number(speed.value) / 100 * C;
 
   const rs = 2 * G * M / (C * C);
 
-  // 설정한 위치가 블랙홀의 사건의 지평선 안인지 확인
-
-  if (r <= rs) {
-
-    document.getElementById("comparison").textContent =
-
-      "현재 설정은 사건의 지평선 안쪽이므로 이 시뮬레이터의 정지 관측자 모델을 적용할 수 없습니다.";
-
-    return;
-
-  }
-
-  // 중력 시간 지연 비율
-
   const gravityRate = Math.sqrt(1 - rs / r);
-
-  // 속도 시간 지연 비율
 
   const speedRate = Math.sqrt(1 - v * v / (C * C));
 
-  // 두 효과 결합
+  const combinedRate = gravityRate * speedRate;
 
-  const totalRate = gravityRate * speedRate;
+  const gravityLoss =
+    (1 - gravityRate) * 86400 * 1e6;
 
-  // 하루 동안의 시간 차이
+  const speedLoss =
+    (1 - speedRate) * 86400 * 1e6;
 
-  const DAY = 86400;
+  const combinedLoss =
+    (1 - combinedRate) * 86400 * 1e6;
 
-  const MICRO = 1e6;
+  const equalSpeed =
+    C * Math.sqrt(rs / r);
 
-  const gravityLoss = (1 - gravityRate) * DAY * MICRO;
-
-  const speedLoss = (1 - speedRate) * DAY * MICRO;
-
-  const totalLoss = (1 - totalRate) * DAY * MICRO;
-
-  // 두 개별 시간 지연 효과가 같아지는 속도
-
-  const equalVelocity = C * Math.sqrt(rs / r);
-
-  // 화면 표시
-
-  massValue.textContent =
-
-    Number(massInput.value).toFixed(1) + " M⊕";
-
-  distanceValue.textContent =
-
-    Number(distanceInput.value).toFixed(1) + " R⊕";
-
-  speedValue.textContent =
-
-    (Number(speedInput.value) * 100).toFixed(2) + "%";
-
-  document.getElementById("gravityLoss").textContent =
-
-    gravityLoss.toFixed(4);
-
-  document.getElementById("speedLoss").textContent =
-
-    speedLoss.toFixed(4);
-
-  document.getElementById("totalLoss").textContent =
-
-    totalLoss.toFixed(4);
-
-  document.getElementById("equalSpeed").textContent =
-
-    (equalVelocity / 1000).toFixed(4);
-
-  // 현재 두 개별 효과 비교
-
-  let message = "";
-
-  if (Math.abs(gravityLoss - speedLoss) < 0.000001) {
-
-    message = "두 개별 시간 지연 효과가 거의 같습니다.";
-
-  } else if (gravityLoss > speedLoss) {
-
-    message = "현재 조건에서는 중력에 의한 시간 지연이 더 큽니다.";
-
-  } else {
-
-    message = "현재 조건에서는 속도에 의한 시간 지연이 더 큽니다.";
-
-  }
-
-  document.getElementById("comparison").textContent =
-
-    message + " 결합 시간 지연은 두 효과를 함께 적용한 결과입니다.";
-
-  drawGraph(M, v);
-
+  return {
+    M, r, v, rs,
+    gravityRate,
+    speedRate,
+    combinedRate,
+    gravityLoss,
+    speedLoss,
+    combinedLoss,
+    equalSpeed
+  };
 }
 
-// 그래프 그리기
+function updateText() {
 
-function drawGraph(M, v) {
+  const x = values();
 
-  const canvas = document.getElementById("graph");
+  document.getElementById("massText").textContent =
+    Number(mass.value).toFixed(1) + " 지구 질량";
 
-  const ctx = canvas.getContext("2d");
+  document.getElementById("distanceText").textContent =
+    Number(distance.value).toFixed(1) + " 지구 반지름";
 
-  const W = canvas.width;
+  document.getElementById("speedText").textContent =
+    Number(speed.value).toFixed(1) + "% c";
 
-  const H = canvas.height;
+  document.getElementById("gravity").textContent =
+    x.gravityLoss.toFixed(4) + " μs/day";
 
-  ctx.clearRect(0, 0, W, H);
+  document.getElementById("velocity").textContent =
+    x.speedLoss.toFixed(4) + " μs/day";
 
-  const left = 75;
+  document.getElementById("combined").textContent =
+    x.combinedLoss.toFixed(4) + " μs/day";
 
-  const right = W - 25;
+  document.getElementById("equalSpeed").textContent =
+    (x.equalSpeed / C * 100).toFixed(3) + "% c";
 
-  const top = 25;
+  document.getElementById("description").textContent =
+    "현재 조건에서 중력만 고려한 시계는 " +
+    x.gravityLoss.toFixed(4) +
+    " μs/day, 속도만 고려한 시계는 " +
+    x.speedLoss.toFixed(4) +
+    " μs/day만큼 멀리 있는 기준 시계보다 느리게 흐르는 것으로 계산돼.";
+}
 
-  const bottom = H - 55;
+function resizeCanvas(c) {
 
-  const maxDistance = 20;
+  const rect = c.getBoundingClientRect();
+
+  c.width = rect.width * devicePixelRatio;
+  c.height = rect.height * devicePixelRatio;
+
+  const context = c.getContext("2d");
+
+  context.setTransform(
+    devicePixelRatio, 0, 0,
+    devicePixelRatio, 0, 0
+  );
+
+  return {
+    w: rect.width,
+    h: rect.height
+  };
+}
+
+function drawSpace() {
+
+  const {w, h} = resizeCanvas(canvas);
+  const x = values();
+
+  ctx.clearRect(0, 0, w, h);
+
+  const cx = w / 2;
+  const cy = h / 2;
+
+  const planetR = Math.min(w, h) * 0.095;
+
+  const maxOrbit = Math.min(w * 0.43, h * 0.43);
+
+  // 별 배경
+  for (let i = 0; i < 70; i++) {
+
+    const sx = (i * 137.5) % w;
+    const sy = (i * 83.7) % h;
+
+    ctx.fillStyle = "rgba(255,255,255,0.5)";
+    ctx.fillRect(sx, sy, 1.5, 1.5);
+  }
+
+  // 행성 중심
+  const gradient = ctx.createRadialGradient(
+    cx - planetR * 0.35,
+    cy - planetR * 0.35,
+    2,
+    cx, cy,
+    planetR * 1.5
+  );
+
+  gradient.addColorStop(0, "#8bd8ff");
+  gradient.addColorStop(0.5, "#2466ba");
+  gradient.addColorStop(1, "#101d45");
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, planetR, 0, Math.PI * 2);
+  ctx.fillStyle = gradient;
+  ctx.fill();
+
+  // 거리 궤도
+  for (let i = 1; i <= 5; i++) {
+
+    const orbit = planetR + i * maxOrbit / 5;
+
+    ctx.beginPath();
+    ctx.arc(cx, cy, orbit, 0, Math.PI * 2);
+
+    ctx.strokeStyle = "rgba(130,170,220,0.22)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // 현재 선택 거리
+  const selectedOrbit =
+    planetR + (Number(distance.value) / 20) * maxOrbit;
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, selectedOrbit, 0, Math.PI * 2);
+
+  ctx.strokeStyle = "#58b9ff";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // 우주선 위치
+  const px = cx + selectedOrbit * Math.cos(angle);
+  const py = cy + selectedOrbit * Math.sin(angle);
+
+  ctx.save();
+  ctx.translate(px, py);
+  ctx.rotate(angle + Math.PI / 2);
+
+  ctx.fillStyle = "#ffbd75";
+
+  ctx.beginPath();
+  ctx.moveTo(0, -12);
+  ctx.lineTo(8, 10);
+  ctx.lineTo(0, 6);
+  ctx.lineTo(-8, 10);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+
+  // 시계
+  const clockX = cx;
+  const clockY = cy - maxOrbit * 0.95;
+
+  ctx.beginPath();
+  ctx.arc(clockX, clockY, 17, 0, Math.PI * 2);
+
+  ctx.fillStyle = "#162943";
+  ctx.fill();
+
+  ctx.strokeStyle = "#65c7ff";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(clockX, clockY);
+  ctx.lineTo(
+    clockX + 10 * Math.cos(angle * 2),
+    clockY + 10 * Math.sin(angle * 2)
+  );
+
+  ctx.strokeStyle = "#ffffff";
+  ctx.stroke();
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "12px Arial";
+  ctx.textAlign = "center";
+
+  ctx.fillText("행성", cx, cy + planetR + 16);
+  ctx.fillText("시계", clockX, clockY - 25);
+  ctx.fillText("우주선", px, py + 25);
+}
+
+function drawChart() {
+
+  const {w, h} = resizeCanvas(chart);
+
+  cctx.clearRect(0, 0, w, h);
+
+  const M = Number(mass.value) * ME;
+  const v = Number(speed.value) / 100 * C;
+
+  const maxDistance = 20 * RE;
 
   const values = [];
 
-  for (let i = 0; i <= 100; i++) {
+  for (let i = 1; i <= 20; i += 0.2) {
 
-    const d = 1 + (maxDistance - 1) * i / 100;
-
-    const r = d * EARTH_RADIUS;
-
+    const r = i * RE;
     const rs = 2 * G * M / (C * C);
 
-    if (r <= rs) {
+    const gravityRate = Math.sqrt(1 - rs / r);
 
-      values.push(0);
+    const gravityLoss =
+      (1 - gravityRate) * 86400 * 1e6;
 
-    } else {
+    const speedRate = Math.sqrt(1 - v * v / (C * C));
 
-      const rate = Math.sqrt(1 - rs / r);
+    const speedLoss =
+      (1 - speedRate) * 86400 * 1e6;
 
-      values.push((1 - rate) * 86400 * 1e6);
-
-    }
-
+    values.push({
+      distance: i,
+      gravityLoss,
+      speedLoss
+    });
   }
-
-  const velocityRate = Math.sqrt(1 - v * v / (C * C));
-
-  const velocityLoss =
-
-    (1 - velocityRate) * 86400 * 1e6;
 
   const maxY = Math.max(
-
-    ...values,
-
-    velocityLoss,
-
+    ...values.map(p => p.gravityLoss),
+    values[0].speedLoss,
     0.000001
+  ) * 1.2;
 
-  ) * 1.15;
+  const left = 48;
+  const right = w - 15;
+  const top = 25;
+  const bottom = h - 35;
 
-  // 좌표 변환
-
-  const x = d => left +
-
-    (d - 1) / (maxDistance - 1) * (right - left);
-
-  const y = value =>
-
-    bottom - value / maxY * (bottom - top);
-
-  // 격자와 축
-
-  ctx.strokeStyle = "#40516a";
-
-  ctx.lineWidth = 1;
-
-  for (let i = 0; i <= 5; i++) {
-
-    const yy = top + (bottom - top) * i / 5;
-
-    ctx.beginPath();
-
-    ctx.moveTo(left, yy);
-
-    ctx.lineTo(right, yy);
-
-    ctx.stroke();
-
-    ctx.fillStyle = "#cbd5e1";
-
-    ctx.font = "12px Arial";
-
-    ctx.textAlign = "right";
-
-    ctx.fillText(
-
-      (maxY * (5-i) / 5).toFixed(2),
-
-      left - 10,
-
-      yy + 4
-
-    );
-
+  function X(d) {
+    return left + d / 20 * (right - left);
   }
 
-  for (let d = 1; d <= 20; d += 3) {
-
-    ctx.fillStyle = "#cbd5e1";
-
-    ctx.textAlign = "center";
-
-    ctx.fillText(d, x(d), bottom + 20);
-
+  function Y(v) {
+    return bottom - v / maxY * (bottom - top);
   }
 
-  // 중력 시간 지연 그래프
+  // 축
+  cctx.strokeStyle = "#64748b";
+  cctx.lineWidth = 1;
 
-  ctx.beginPath();
+  cctx.beginPath();
+  cctx.moveTo(left, top);
+  cctx.lineTo(left, bottom);
+  cctx.lineTo(right, bottom);
+  cctx.stroke();
 
-  ctx.strokeStyle = "#60a5fa";
+  // 중력 그래프
+  cctx.beginPath();
 
-  ctx.lineWidth = 3;
-
-  values.forEach((value, i) => {
-
-    const d = 1 + 19 * i / 100;
+  values.forEach((p, i) => {
 
     if (i === 0) {
-
-      ctx.moveTo(x(d), y(value));
-
+      cctx.moveTo(X(p.distance), Y(p.gravityLoss));
     } else {
-
-      ctx.lineTo(x(d), y(value));
-
+      cctx.lineTo(X(p.distance), Y(p.gravityLoss));
     }
 
   });
 
-  ctx.stroke();
+  cctx.strokeStyle = "#58b9ff";
+  cctx.lineWidth = 2.5;
+  cctx.stroke();
 
-  // 속도 시간 지연 그래프
+  // 속도 그래프
+  cctx.beginPath();
+  cctx.moveTo(left, Y(values[0].speedLoss));
+  cctx.lineTo(right, Y(values[0].speedLoss));
 
-  ctx.beginPath();
+  cctx.strokeStyle = "#ffb86b";
+  cctx.lineWidth = 2;
+  cctx.stroke();
 
-  ctx.strokeStyle = "#fbbf24";
+  // 현재 거리 표시
+  const current = Number(distance.value);
 
-  ctx.lineWidth = 3;
+  cctx.beginPath();
+  cctx.moveTo(X(current), top);
+  cctx.lineTo(X(current), bottom);
 
-  ctx.setLineDash([8, 5]);
+  cctx.strokeStyle = "rgba(255,255,255,0.35)";
+  cctx.setLineDash([4, 4]);
+  cctx.stroke();
+  cctx.setLineDash([]);
 
-  ctx.moveTo(left, y(velocityLoss));
+  cctx.fillStyle = "#dbeafe";
+  cctx.font = "11px Arial";
 
-  ctx.lineTo(right, y(velocityLoss));
+  cctx.textAlign = "center";
+  cctx.fillText("1", X(1), bottom + 18);
+  cctx.fillText("10", X(10), bottom + 18);
+  cctx.fillText("20", X(20), bottom + 18);
 
-  ctx.stroke();
+  cctx.textAlign = "left";
+  cctx.fillText("거리 (지구 반지름)", left, 13);
 
-  ctx.setLineDash([]);
+  cctx.fillStyle = "#58b9ff";
+  cctx.fillText("중력", left + 5, top + 12);
 
-  // 축 제목
-
-  ctx.fillStyle = "#f1f5f9";
-
-  ctx.textAlign = "center";
-
-  ctx.fillText(
-
-    "행성 중심으로부터의 거리 (지구 반지름)",
-
-    W / 2,
-
-    H - 12
-
-  );
-
-  ctx.save();
-
-  ctx.translate(18, H / 2);
-
-  ctx.rotate(-Math.PI / 2);
-
-  ctx.fillText("하루당 시간 지연 (μs)", 0, 0);
-
-  ctx.restore();
-
+  cctx.fillStyle = "#ffb86b";
+  cctx.fillText("속도", left + 5, top + 28);
 }
 
-// 입력 변경 시 계산
+function animate() {
 
-massInput.addEventListener("input", calculate);
+  if (!paused) {
+    angle += 0.012;
+  }
 
-distanceInput.addEventListener("input", calculate);
-
-speedInput.addEventListener("input", calculate);
-
-// 초기화
-
-function resetAll() {
-
-  massInput.value = 1;
-
-  distanceInput.value = 1;
-
-  speedInput.value = 0.01;
-
-  calculate();
-
+  drawSpace();
+  requestAnimationFrame(animate);
 }
 
-// 최초 실행
+[mass, distance, speed].forEach(el => {
 
-calculate();
+  el.addEventListener("input", () => {
+    updateText();
+    drawChart();
+  });
+
+});
+
+window.addEventListener("resize", drawChart);
+
+updateText();
+drawChart();
+animate();
 
 </script>
 
 </body>
-
 </html>
