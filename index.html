@@ -3,390 +3,270 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>시간 지연 시뮬레이터</title>
 <style>
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  padding: 20px;
-  font-family: Arial, sans-serif;
-  background: #f1f5fa;
-  color: #172033;
+*{box-sizing:border-box}
+body{margin:0;padding:20px;font-family:Arial,"Noto Sans KR",sans-serif;background:#f2f5fa;color:#172033}
+main{max-width:1100px;margin:auto}
+h1{font-size:26px;margin:0 0 8px}
+h2{font-size:18px;margin:0 0 14px}
+.sub{color:#657188;font-size:14px;margin:0 0 20px}
+.panel{background:white;border:1px solid #e2e8f0;border-radius:15px;padding:18px;box-shadow:0 3px 12px #15294b0c}
+.top{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,340px);gap:16px;align-items:stretch}
+.scene{height:320px;background:radial-gradient(circle at center,#1a3156,#091326);border-radius:12px;position:relative;overflow:hidden}
+.planet{position:absolute;width:92px;height:92px;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle at 30% 28%,#9bd8ff,#2860a0 65%,#102c55)}
+.orbit{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border:1px dashed #b5d1f2a0;border-radius:50%}
+.rotator{position:absolute;left:50%;top:50%;animation:spin 10s linear infinite}
+.satellite{position:absolute;right:-9px;top:50%;width:18px;height:18px;border-radius:50%;background:#ffbd59;border:2px solid white;transform:translateY(-50%)}
+.surface{position:absolute;left:50%;top:calc(50% - 46px);width:11px;height:11px;border-radius:50%;background:#ffe477;border:2px solid white;transform:translate(-50%,-50%)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:#5d6b80;margin-top:12px}
+.key{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.controls{display:flex;flex-direction:column;gap:20px}
+.control label{font-weight:bold;display:flex;justify-content:space-between;gap:8px;font-size:14px;margin-bottom:8px}
+output{color:#2463b4;font-variant-numeric:tabular-nums;text-align:right}
+input{width:100%;accent-color:#3268c8}
+.hint{font-size:12px;color:#748096;line-height:1.5;margin:6px 0 0}
+.results{margin-top:16px}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.metric{background:#f3f6fb;padding:13px;border-radius:10px;min-width:0}
+.metric span{display:block;font-size:12px;color:#647188;margin-bottom:7px}
+.metric strong{font-size:16px;overflow-wrap:anywhere}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+td,th{padding:10px 7px;border-bottom:1px solid #e7ebf1;text-align:left;font-size:14px}
+th{color:#647188}
+.note{font-size:13px;color:#6b7485;line-height:1.6}
+@media(max-width:700px){
+ body{padding:12px}
+ .top{grid-template-columns:minmax(0,1fr) minmax(0,0.92fr);gap:9px}
+ .panel{padding:12px}
+ .scene{height:260px}
+ .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .control label{font-size:12px;display:block}
+ .control output{display:block;text-align:left;margin-top:4px}
+ .controls{gap:15px}
+ h1{font-size:21px}
 }
-h1 { font-size: 25px; }
-.layout {
-  max-width: 1100px;
-  margin: auto;
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 18px;
-  align-items: start;
-}
-.panel {
-  background: white;
-  padding: 20px;
-  border-radius: 15px;
-  box-shadow: 0 3px 12px #00000010;
-}
-.control { margin-bottom: 25px; }
-.control label {
-  display: flex;
-  justify-content: space-between;
-  font-weight: bold;
-  margin-bottom: 10px;
-}
-input[type=range] { width: 100%; }
-output { color: #2463b4; }
-.scene {
-  height: 310px;
-  background: #101d35;
-  border-radius: 12px;
-  position: relative;
-  overflow: hidden;
-}
-.planet {
-  position: absolute;
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #8bd0ff, #24518f);
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%,-50%);
-}
-.orbit {
-  position: absolute;
-  border: 1px dashed #a8c9ef;
-  border-radius: 50%;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%,-50%);
-}
-.rotator {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  animation: spin 10s linear infinite;
-}
-.satellite {
-  position: absolute;
-  width: 17px;
-  height: 17px;
-  border-radius: 50%;
-  background: #ffc45c;
-  border: 2px solid white;
-  right: -8px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-.surface {
-  position: absolute;
-  left: 50%;
-  top: calc(50% - 45px);
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: #fff176;
-  transform: translate(-50%,-50%);
-}
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-.metrics {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 15px;
-}
-.metric {
-  padding: 13px;
-  background: #f1f5fa;
-  border-radius: 10px;
-}
-.metric span {
-  display: block;
-  font-size: 13px;
-  color: #68758a;
-  margin-bottom: 7px;
-}
-.metric strong {
-  font-size: 17px;
-  overflow-wrap: anywhere;
-}
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-td, th {
-  padding: 10px 5px;
-  border-bottom: 1px solid #ddd;
-  text-align: left;
-}
-.small {
-  font-size: 13px;
-  color: #657188;
-  line-height: 1.6;
-}
-@media(max-width:700px) {
-  .layout { grid-template-columns: 1fr; }
+@media(max-width:390px){
+ .top{grid-template-columns:1fr}
+ .scene{height:280px}
+ .control label{display:flex}
+ .control output{margin:0}
 }
 </style>
 </head>
 
 <body>
-<main style="max-width:1100px;margin:auto">
+<main>
 <h1>중력과 운동에 의한 시간 지연</h1>
-<p class="small">
-행성과 위성의 조건을 바꾸며 시간의 흐름을 비교해 보세요.
-</p>
+<p class="sub">시각화 옆의 조건을 바꾸면 계산 결과가 실시간으로 바뀝니다.</p>
 
-<div class="layout">
+<div class="top">
 
-<!-- 왼쪽: 조건 설정 -->
-<section class="panel">
-<h2>조건 설정</h2>
+  <!-- 왼쪽: 시각화 -->
+  <section class="panel">
+    <h2>궤도 시각화</h2>
+    <div class="scene">
+      <div class="orbit" id="orbitPath"></div>
+      <div class="rotator" id="rotator">
+        <div class="satellite"></div>
+      </div>
+      <div class="planet"></div>
+      <div class="surface"></div>
+    </div>
+    <div class="legend">
+      <span><i class="key" style="background:#75bfff"></i>행성</span>
+      <span><i class="key" style="background:#ffe477"></i>표면 관찰자</span>
+      <span><i class="key" style="background:#ffbd59"></i>공전 위성</span>
+    </div>
+  </section>
 
-<div class="control">
-<label>
-행성 질량
-<output id="massValue">1.0</output>
-</label>
-<input id="mass" type="range"
-min="0.1" max="10" step="0.1" value="1">
-<p class="small">단위: 지구 질량</p>
+  <!-- 오른쪽: 조건 변경 -->
+  <section class="panel controls">
+    <h2>조건 변경</h2>
+
+    <div class="control">
+      <label for="mass">
+        행성 질량
+        <output id="massValue">1.0 지구 질량</output>
+      </label>
+      <input id="mass" type="range" min="0.1" max="10" step="0.1" value="1">
+      <p class="hint">지구 질량을 1로 설정</p>
+    </div>
+
+    <div class="control">
+      <label for="radius">
+        행성 반지름
+        <output id="radiusValue">1.0 지구 반지름</output>
+      </label>
+      <input id="radius" type="range" min="0.5" max="3" step="0.1" value="1">
+      <p class="hint">지구 반지름을 1로 설정</p>
+    </div>
+
+    <div class="control">
+      <label for="orbit">
+        궤도 반지름
+        <output id="orbitValue">3.0배</output>
+      </label>
+      <input id="orbit" type="range" min="1.1" max="12" step="0.1" value="3">
+      <p class="hint">행성 중심부터 위성까지의 거리 (행성 반지름 기준)</p>
+    </div>
+
+    <p class="hint">원궤도 조건을 가정하여 위성 속력은 자동 계산합니다.</p>
+  </section>
 </div>
 
-<div class="control">
-<label>
-행성 반지름
-<output id="radiusValue">1.0</output>
-</label>
-<input id="radius" type="range"
-min="0.5" max="3" step="0.1" value="1">
-<p class="small">단위: 지구 반지름</p>
-</div>
+<!-- 아래쪽: 계산 결과 -->
+<section class="panel results">
+  <h2>계산 결과</h2>
+  <div class="metrics">
+    <div class="metric">
+      <span>위성 공전 속력</span>
+      <strong id="speed">계산 중</strong>
+    </div>
+    <div class="metric">
+      <span>광속 대비 속력</span>
+      <strong id="speedPercent">계산 중</strong>
+    </div>
+    <div class="metric">
+      <span>행성 표면 시계의 하루</span>
+      <strong id="surfaceTime">계산 중</strong>
+    </div>
+    <div class="metric">
+      <span>위성 시계의 하루</span>
+      <strong id="satelliteTime">계산 중</strong>
+    </div>
+  </div>
 
-<div class="control">
-<label>
-궤도 반지름
-<output id="orbitValue">3.0</output>
-</label>
-<input id="orbit" type="range"
-min="1.1" max="12" step="0.1" value="3">
-<p class="small">
-행성 중심부터 위성까지의 거리 (행성 반지름 단위)
-</p>
-</div>
+  <h2 style="margin-top:22px">시간 지연 비교</h2>
+  <p class="note">아주 먼 곳에 정지한 기준 시계가 24시간 흐르는 동안을 비교합니다.</p>
 
-<p class="small">
-위성의 속력은 원궤도 조건에 따라 자동으로 계산됩니다.
-</p>
+  <table>
+    <tr>
+      <th>관찰 위치</th>
+      <th>기준 시계보다 느려진 시간</th>
+    </tr>
+    <tr>
+      <td>행성 표면</td>
+      <td id="surfaceDelay">계산 중</td>
+    </tr>
+    <tr>
+      <td>공전 위성</td>
+      <td id="satelliteDelay">계산 중</td>
+    </tr>
+  </table>
+
+  <p id="comparison" class="note"></p>
 </section>
 
-<!-- 오른쪽: 시각화와 결과 -->
-<section class="panel">
-<h2>궤도 시각화</h2>
-
-<div class="scene">
-<div class="orbit" id="orbitPath"></div>
-<div class="rotator" id="rotator">
-<div class="satellite"></div>
-</div>
-<div class="planet"></div>
-<div class="surface"></div>
-</div>
-
-<p class="small">
-파란색: 행성 / 노란색: 행성 표면 관찰자 /
-주황색: 공전 위성
-</p>
-
-<h2>계산 결과</h2>
-
-<div class="metrics">
-<div class="metric">
-<span>위성의 공전 속력</span>
-<strong id="speed">계산 중</strong>
-</div>
-<div class="metric">
-<span>광속 대비 속력</span>
-<strong id="speedPercent">계산 중</strong>
-</div>
-<div class="metric">
-<span>행성 표면 시계</span>
-<strong id="surfaceTime">계산 중</strong>
-</div>
-<div class="metric">
-<span>위성 시계</span>
-<strong id="satelliteTime">계산 중</strong>
-</div>
-</div>
-
-<h2 style="margin-top:25px">시간 지연 비교</h2>
-<p class="small">
-아주 먼 곳의 정지한 기준 시계가 24시간 흐르는 동안의 차이입니다.
-</p>
-
-<table>
-<tr>
-<th>관찰 위치</th>
-<th>시간 지연</th>
-</tr>
-<tr>
-<td>행성 표면</td>
-<td id="surfaceDelay">계산 중</td>
-</tr>
-<tr>
-<td>공전 위성</td>
-<td id="satelliteDelay">계산 중</td>
-</tr>
-</table>
-
-<p id="comparison" class="small"></p>
-</section>
-</div>
-
-<section class="panel" style="margin-top:18px">
-<h2>계산 원리</h2>
-<p class="small">
-원궤도 속력:
-v = √(GM/r)
-</p>
-<p class="small">
-중력에 의한 시간 흐름:
-√(1 - 2GM/rc²)
-</p>
-<p class="small">
-위성의 시간 흐름:
-√(1 - 2GM/rc²) × √(1 - v²/c²)
-</p>
-<p class="small">
-뉴턴 역학으로 원궤도 속력을 근사하고,
-상대론적 식으로 시간 흐름을 계산한 교육용 모델입니다.
-행성은 구형이며 자전하지 않는다고 가정합니다.
-</p>
+<section class="panel" style="margin-top:16px">
+  <h2>계산 원리와 가정</h2>
+  <p class="note">원궤도 속력(뉴턴 역학 근사): v = √(GM/r)</p>
+  <p class="note">정지한 시계의 시간 비율: √(1 − 2GM/(rc²))</p>
+  <p class="note">공전 위성의 시간 비율: √(1 − 2GM/(rc²)) × √(1 − v²/c²)</p>
+  <p class="note">구형·비회전 행성을 가정합니다. 위성 속력은 뉴턴 역학의 원궤도 근사식으로 계산하고, 시간 흐름은 상대론적 식으로 계산한 교육용 모델입니다.</p>
 </section>
 </main>
 
 <script>
+(function(){
+"use strict";
+
 const G = 6.67430e-11;
 const C = 299792458;
-const EARTH_MASS = 5.9722e24;
-const EARTH_RADIUS = 6371000;
+const ME = 5.9722e24;
+const RE = 6371000;
 const DAY = 86400;
 
-function format(number, digits = 3) {
-  return Number(number).toLocaleString("ko-KR", {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits
+const el = id => document.getElementById(id);
+
+function fmt(x,n=3){
+  return Number(x).toLocaleString("ko-KR",{
+    minimumFractionDigits:n,
+    maximumFractionDigits:n
   });
 }
 
-function update() {
-  const mass = Number(document.getElementById("mass").value);
-  const radius = Number(document.getElementById("radius").value);
-  const orbit = Number(document.getElementById("orbit").value);
+function update(){
+  const mass = Number(el("mass").value);
+  const radius = Number(el("radius").value);
+  const orbit = Number(el("orbit").value);
 
-  document.getElementById("massValue").textContent =
-    mass.toFixed(1) + " 지구 질량";
+  el("massValue").textContent = mass.toFixed(1)+" 지구 질량";
+  el("radiusValue").textContent = radius.toFixed(1)+" 지구 반지름";
+  el("orbitValue").textContent = orbit.toFixed(1)+"배";
 
-  document.getElementById("radiusValue").textContent =
-    radius.toFixed(1) + " 지구 반지름";
-
-  document.getElementById("orbitValue").textContent =
-    orbit.toFixed(1) + "배";
-
-  const M = mass * EARTH_MASS;
-  const R = radius * EARTH_RADIUS;
+  const M = mass * ME;
+  const R = radius * RE;
   const r = orbit * R;
 
   // 슈바르츠실트 반지름
-  const rs = 2 * G * M / (C * C);
+  const rs = 2 * G * M / (C*C);
 
-  // 원궤도 속력 (뉴턴 역학 근사)
-  const v = Math.sqrt(G * M / r);
+  // 원궤도 속력: 뉴턴 역학 근사
+  const v = Math.sqrt(G*M/r);
 
-  // 행성 표면 시계의 시간 비율
-  const surfaceRate = Math.sqrt(1 - rs / R);
+  // 행성 표면의 정지한 시계
+  const surfaceRate = Math.sqrt(1-rs/R);
 
-  // 위성 위치에서 중력에 의한 시간 비율
-  const gravityRate = Math.sqrt(1 - rs / r);
+  // 위성 위치의 중력 효과
+  const gravityRate = Math.sqrt(1-rs/r);
 
-  // 위성 운동에 의한 시간 비율
-  const motionRate = Math.sqrt(1 - (v / C) ** 2);
+  // 위성 운동에 의한 시간 효과
+  const motionRate = Math.sqrt(1-(v/C)*(v/C));
 
   // 위성 시계의 전체 시간 비율
-  const satelliteRate = gravityRate * motionRate;
+  const satelliteRate = gravityRate*motionRate;
 
-  // 먼 곳의 기준 시계가 하루 흐를 때
-  const surfaceSeconds = DAY * surfaceRate;
-  const satelliteSeconds = DAY * satelliteRate;
+  // 먼 곳의 기준 시계가 24시간 흐를 때
+  const surfaceSeconds = DAY*surfaceRate;
+  const satelliteSeconds = DAY*satelliteRate;
 
-  // 시간 지연 (마이크로초)
-  const surfaceDelay =
-    DAY * (1 - surfaceRate) * 1000000;
-
-  const satelliteDelay =
-    DAY * (1 - satelliteRate) * 1000000;
+  const surfaceLag = DAY*(1-surfaceRate)*1e6;
+  const satelliteLag = DAY*(1-satelliteRate)*1e6;
 
   // 결과 표시
-  document.getElementById("speed").textContent =
-    format(v / 1000, 3) + " km/s";
+  el("speed").textContent = fmt(v/1000,3)+" km/s";
+  el("speedPercent").textContent = fmt(v/C*100,6)+"%";
+  el("surfaceTime").textContent = fmt(surfaceSeconds/3600,9)+" 시간";
+  el("satelliteTime").textContent = fmt(satelliteSeconds/3600,9)+" 시간";
+  el("surfaceDelay").textContent = fmt(surfaceLag,3)+" μs";
+  el("satelliteDelay").textContent = fmt(satelliteLag,3)+" μs";
 
-  document.getElementById("speedPercent").textContent =
-    format(v / C * 100, 6) + "%";
+  const difference = (satelliteSeconds-surfaceSeconds)*1e6;
 
-  document.getElementById("surfaceTime").textContent =
-    format(surfaceSeconds / 3600, 9) + " 시간";
-
-  document.getElementById("satelliteTime").textContent =
-    format(satelliteSeconds / 3600, 9) + " 시간";
-
-  document.getElementById("surfaceDelay").textContent =
-    format(surfaceDelay, 3) + " μs";
-
-  document.getElementById("satelliteDelay").textContent =
-    format(satelliteDelay, 3) + " μs";
-
-  const difference =
-    (satelliteSeconds - surfaceSeconds) * 1000000;
-
-  if (difference >= 0) {
-    document.getElementById("comparison").textContent =
-      "위성 시계가 행성 표면 시계보다 " +
-      format(difference, 3) + " μs 더 많이 흐릅니다.";
-  } else {
-    document.getElementById("comparison").textContent =
-      "위성 시계가 행성 표면 시계보다 " +
-      format(Math.abs(difference), 3) + " μs 덜 흐릅니다.";
+  if(difference>0){
+    el("comparison").textContent =
+      "위성 시계가 행성 표면 시계보다 "+
+      fmt(difference,3)+" μs 더 많이 흐릅니다.";
+  }else if(difference<0){
+    el("comparison").textContent =
+      "위성 시계가 행성 표면 시계보다 "+
+      fmt(Math.abs(difference),3)+" μs 덜 흐릅니다.";
+  }else{
+    el("comparison").textContent =
+      "두 시계의 흐른 시간이 같습니다.";
   }
 
-  // 궤도 그림 크기 조절
-  const px = Math.min(125, 55 + (orbit - 1) * 5.5);
+  // 궤도 그림 크기 변경
+  const px = Math.min(125,56+(orbit-1)*5.5);
 
-  document.getElementById("orbitPath").style.width =
-    (px * 2) + "px";
-
-  document.getElementById("orbitPath").style.height =
-    (px * 2) + "px";
-
-  document.getElementById("rotator").style.width =
-    (px * 2) + "px";
-
-  document.getElementById("rotator").style.height =
-    (px * 2) + "px";
+  el("orbitPath").style.width = (2*px)+"px";
+  el("orbitPath").style.height = (2*px)+"px";
+  el("rotator").style.width = (2*px)+"px";
+  el("rotator").style.height = (2*px)+"px";
 }
 
-// 슬라이더를 움직일 때마다 계산
-document.getElementById("mass").addEventListener("input", update);
-document.getElementById("radius").addEventListener("input", update);
-document.getElementById("orbit").addEventListener("input", update);
+// 슬라이더 변경 시 실시간 계산
+["mass","radius","orbit"].forEach(id=>{
+  el(id).addEventListener("input",update);
+});
 
-// 처음 페이지를 열 때도 계산
+// 페이지 최초 실행
 update();
-</script>
 
+})();
+</script>
 </body>
 </html>
